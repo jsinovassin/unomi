@@ -27,6 +27,15 @@ import com.networknt.schema.NonValidationKeyword;
 import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 import com.networknt.schema.uri.URIFetcher;
+import net.jimblackler.jsonschemafriend.CachedRegExPatternSupplier;
+import net.jimblackler.jsonschemafriend.InvalidRegexException;
+import net.jimblackler.jsonschemafriend.JavaRegExPattern;
+import net.jimblackler.jsonschemafriend.RegExPattern;
+import net.jimblackler.jsonschemafriend.RegExPatternSupplier;
+import net.jimblackler.jsonschemafriend.Schema;
+import net.jimblackler.jsonschemafriend.SchemaException;
+import net.jimblackler.jsonschemafriend.SchemaStore;
+import net.jimblackler.jsonschemafriend.Validator;
 import org.apache.commons.io.IOUtils;
 import org.apache.unomi.api.Metadata;
 import org.apache.unomi.api.PartialList;
@@ -37,7 +46,6 @@ import org.apache.unomi.api.schema.json.JSONTypeFactory;
 import org.apache.unomi.api.services.ProfileService;
 import org.apache.unomi.api.services.SchedulerService;
 import org.apache.unomi.api.services.SchemaService;
-import org.apache.unomi.persistence.spi.CustomObjectMapper;
 import org.apache.unomi.persistence.spi.PersistenceService;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
@@ -109,6 +117,40 @@ public class SchemaServiceImpl implements SchemaService {
 
     @Override
     public boolean isValid(JsonNode jsonNode, String schemaId) {
+        try {
+            if ("https://unomi.apache.org/schemas/json/events/download/1-0-0".equals(schemaId)) {
+                SchemaStore schemaStore = new SchemaStore();
+                Validator validator = new Validator(new CachedRegExPatternSupplier(new RegExPatternSupplier() {
+                    @Override
+                    public RegExPattern newPattern(String pattern) throws InvalidRegexException {
+                        return new JavaRegExPattern(pattern);
+                    }
+                }), validationError -> true, true);
+
+                schemaStore.loadSchema(
+                        schemasById.get("https://unomi.apache.org/schemas/json/download/target/properties/1-0-0").getSchemaTree(),
+                        validator);
+                schemaStore.loadSchema(schemasById.get("https://unomi.apache.org/schemas/json/item/1-0-0").getSchemaTree(), validator);
+                schemaStore.loadSchema(schemasById.get("https://unomi.apache.org/schemas/json/timestampeditem/1-0-0").getSchemaTree(),
+                        validator);
+                schemaStore.loadSchema(schemasById.get("https://unomi.apache.org/schemas/json/download/properties/1-0-0").getSchemaTree(),
+                        validator);
+                schemaStore.loadSchema(schemasById.get("https://unomi.apache.org/schemas/json/download/target/1-0-0").getSchemaTree(),
+                        validator);
+                schemaStore.loadSchema(schemasById.get("https://unomi.apache.org/schemas/json/event/1-0-0").getSchemaTree(), validator);
+                Schema schema = schemaStore
+                        .loadSchema(schemasById.get("https://unomi.apache.org/schemas/json/events/download/1-0-0").getSchemaTree(),
+                                validator);
+
+                if (schema != null) {
+                    validator.validateJson(schema, jsonNode.toString()); // Will not throw an exception.
+                }
+            }
+
+        } catch (SchemaException e) {
+            logger.error("Failed to process json schema", e);
+
+        }
         String schemaAsString;
         JsonSchema jsonSchema = null;
         try {

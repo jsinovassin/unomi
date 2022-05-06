@@ -175,9 +175,18 @@
         <dependency>
             <groupId>com.networknt</groupId>
             <artifactId>json-schema-validator</artifactId>
-            <version>1.0.49</version>
+            <version>1.0.69</version>
         </dependency>
-
+        <dependency>
+            <groupId>net.jimblackler.jsonschemafriend</groupId>
+            <artifactId>core</artifactId>
+            <version>0.11.3</version>
+        </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.10.2</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -195,6 +204,16 @@
                             org.jcodings.specific;resolution:=optional,
                             org.joni;resolution:=optional,
                             org.joni.exception;resolution:=optional,
+                            org.joda.convert;resolution:=optional,
+                            org.joda.time;resolution:=optional,
+                            com.ethlo.time;resolution:=optional,
+                            com.damnhandy.uri.template;resolution:=optional,
+                            com.ibm.icu.text;resolution:=optional,
+                            org.apache.commons.validator.routines;resolution:=optional,
+                            org.jsoup;resolution:=optional,
+                            org.jsoup.nodes;resolution:=optional,
+                            org.jsoup.select;resolution:=optional,
+
                             *
                         </Import-Package>
                     </instructions>
